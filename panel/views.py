@@ -14,18 +14,26 @@ def add_client(request):
 
 def register_client(request):
     try:
-        new_client = Client()
-        new_client.first_name = request.POST['first_name']
-        new_client.last_name = request.POST['last_name']
-        new_client.email = request.POST['email']
-        new_client.phone = request.POST['phone']
-        new_client.address = request.POST['address']
-        new_client.city = request.POST['city']
-        new_client.country = request.POST['country']
-        new_client.postcode = request.POST['post-code']
-        new_client.nip = request.POST['nip']
-        new_client.save()
+        if Client.objects.filter(email=request.POST['email']).exists():
+            return render(request, '../templates/alert.html', context={'message': 'Email already exists in database'})
+        elif Client.objects.filter(phone=request.POST['phone']).exists():
+            return render(request, '../templates/alert.html', context={'message': 'Phone already exists in database'})
+        elif Client.objects.filter(nip=request.POST['nip']).exists():
+            return render(request, '../templates/alert.html', context={'message': 'NIP number already exists in database'})
+        else:
+            client = Client.objects.create(
+                first_name=request.POST['first_name'],
+                last_name=request.POST['last_name'],
+                email=request.POST['email'],
+                phone=request.POST['phone'],
+                address=request.POST['address'],
+                city=request.POST['city'],
+                postcode=request.POST['post-code'],
+                country=request.POST['country'],
+                nip=request.POST['nip']
+            )
+            client.save()
     except KeyError as e:
-        return render(request, 'alert.html', context={'message': e})
+        return render(request, '../templates/alert.html', context={'message': e})
 
     return HttpResponse("Client successfully saved!")
