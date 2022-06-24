@@ -1,39 +1,50 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import Client
+from .models import *
+from .forms import *
 
 
 # Create your views here.
 def index(request):
-    return HttpResponse("Hello, world. You're at the polls index.")
+    return render(request, 'homepage.html')
+
+
+def success(request):
+    return render(request, 'success.html')
 
 
 def add_client(request):
-    return render(request, '../templates/add_client.html')
+    if request.method == 'POST':
+        form = ClientForm(request.POST, request.FILES)
+        if form.is_valid():
+            if Client.objects.filter(email=request.POST['email']).exists():
+                return render(request, 'alert.html',
+                              context={'message': 'Declared email address already exists in database'})
+            elif Client.objects.filter(phone=request.POST['phone']).exists():
+                return render(request, 'alert.html',
+                              context={'message': 'Declared phone number already exists in database'})
+            elif Client.objects.filter(nip=request.POST['nip']).exists():
+                return render(request, 'alert.html', context={'message': 'NIP number already exists in database'})
+            else:
+                form.save()
+                return redirect('success')
+        # TODO If not valid, add alert and render again
+    else:
+        form = ClientForm()
+        return render(request, 'add_client.html', {'form': form})
 
 
-def register_client(request):
-    try:
-        if Client.objects.filter(email=request.POST['email']).exists():
-            return render(request, '../templates/alert.html', context={'message': 'Email already exists in database'})
-        elif Client.objects.filter(phone=request.POST['phone']).exists():
-            return render(request, '../templates/alert.html', context={'message': 'Phone already exists in database'})
-        elif Client.objects.filter(nip=request.POST['nip']).exists():
-            return render(request, '../templates/alert.html', context={'message': 'NIP number already exists in database'})
-        else:
-            client = Client.objects.create(
-                first_name=request.POST['first_name'],
-                last_name=request.POST['last_name'],
-                email=request.POST['email'],
-                phone=request.POST['phone'],
-                address=request.POST['address'],
-                city=request.POST['city'],
-                postcode=request.POST['post-code'],
-                country=request.POST['country'],
-                nip=request.POST['nip']
-            )
-            client.save()
-    except KeyError as e:
-        return render(request, '../templates/alert.html', context={'message': e})
-
-    return HttpResponse("Client successfully saved!")
+def add_product(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            if Product.objects.filter(name__iexact=request.POST['name']).exists():
+                return render(request, 'alert.html',
+                              context={'message': 'Declared phone number already exists in database'})
+            else:
+                form.save()
+                return redirect('success')
+        # TODO If not valid, add alert and render again
+    else:
+        form = ProductForm()
+        return render(request, 'add_product.html', {'form': form})

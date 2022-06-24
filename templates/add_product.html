@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>Add product to database</title>
+    <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC">
+</head>
+<body>
+    <h1>Add product to database</h1>
+{#    <form action="/register_product/" method="post">#}
+{#        <label for="product_name">#}
+{#            Product name:#}
+{#            <input type="text" name="product_name" id="product_name" required>#}
+{#        </label>#}
+{#        <label for="product_description">#}
+{#            Description:#}
+{#            <textarea name="product_description" cols="40" rows="5" required></textarea>#}
+{#        </label>#}
+{#        <label for="product_price">#}
+{#            Price ($)#}
+{#            <input type="number" name="product_price" id="product_price" required>#}
+{#        </label>#}
+{#        <label>#}
+{#            Product image:#}
+{#            <input type="file" name="product_image" id="product_image">#}
+{#        </label>#}
+{##}
+{#        <input type="submit" value="Add product">#}
+{#    </form>#}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add product</button>
+    </form>
+    <a href="http://127.0.0.1:8000/">Homepage</a>
+</body>

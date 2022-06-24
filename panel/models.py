@@ -18,8 +18,28 @@ class Client(models.Model):
 
     @property
     def full_name(self):
-        "Returns the person's full name."
+        """Returns the person's full name.
+
+        Returns
+        -------
+        str
+            string containing person's full name
+        """
         return f'{self.first_name} {self.last_name}'
+
+    @property
+    def full_address(self):
+        """Get full address of client
+
+        Returns
+        -------
+        str
+            string containing full address of client
+        """
+        return f'{self.address}, {self.postcode} {self.city}, {self.country}'
+
+    def __str__(self):
+        return self.full_name
 
 
 class Invoice(models.Model):
@@ -31,10 +51,13 @@ class Invoice(models.Model):
     sell_date = models.DateField(auto_now_add=True)
     invoice_number = models.CharField(max_length=255)
     seller = models.CharField(max_length=255, default='Magazine')
-    total_netto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_net = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_brutto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     payment_method = models.CharField(max_length=255, default="Web transfer")
     payment_date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return self.invoice_number
 
 
 class Product(models.Model):
