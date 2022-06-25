@@ -3,8 +3,11 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from decimal import Decimal
 
+
 # Create your models here.
+
 class Client(models.Model):
+    """Client instance"""
     class Meta:
         managed = True
 
@@ -45,6 +48,7 @@ class Client(models.Model):
 
 
 class Product(models.Model):
+    """Product instance"""
     class Meta:
         managed = True
 
@@ -58,6 +62,7 @@ class Product(models.Model):
 
 
 class Invoice(models.Model):
+    """Invoice instance"""
     class Meta:
         managed = True
 
@@ -76,13 +81,14 @@ class Invoice(models.Model):
 
 
 class InvoicePosition(models.Model):
+    """Invoice Product with amount position (one product row)"""
     class Meta:
         managed = True
 
     invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT)
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     amount = models.DecimalField(max_digits=6, decimal_places=0, default=1, validators=[MinValueValidator(Decimal('1'))])
-    total_net = models.DecimalField(max_digits=20, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    total_net = models.DecimalField(max_digits=20, decimal_places=2, default=0, validators=[MinValueValidator(Decimal('0.01'))])
 
     def __str__(self):
         return f'{self.product}, {self.amount} {"pc" if self.amount == 1 else "pcs"}'

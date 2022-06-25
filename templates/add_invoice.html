@@ -17,10 +17,17 @@
             {{ form.as_p }}
             </div>
         {% endfor %}
+        <br>
         <button id="add-form" type="button">Add another product</button>
         <button id="remove-form" type="button">Remove last product</button>
+        <br>
+        <br>
+        <br>
         <button type="submit" class="btn btn-block btn-primary">Add invoice</button>
     </form>
+    <br>
+    <br>
+    <br>
     <a href="http://127.0.0.1:8000/">Homepage</a>
 
     <script>
@@ -38,7 +45,7 @@
             e.preventDefault()
 
             let newForm = productForm[0].cloneNode(true)
-            let formRegex = RegExp(`form-(\\d){1}-`,'g')
+            const formRegex = RegExp(`form-(\\d){1}-`,'g')
 
             formNum++
             newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${formNum}-`)
@@ -49,15 +56,35 @@
 
         function removeForm(e){
             e.preventDefault()
-            let productFormu = document.querySelectorAll(".product-form")
+            const productForm = document.querySelectorAll(".product-form")
             if (formNum !== 0) {
-                {#console.log(productForm)#}
-                let lastForm = productFormu[formNum]
-                {#console.log(lastForm)#}
+                const lastForm = productForm[formNum]
                 lastForm.remove()
                 formNum--
                 totalForms.setAttribute('value', `${formNum+1}`)
             }
+        }
+    </script>
+    <script>
+        const total_net = document.querySelector('#id_total_net')
+        const total_brutto = document.querySelector('#id_total_brutto')
+        document.addEventListener('change', updateTotal)
+        total_net.addEventListener('change', updateBrutto)
+
+        function updateTotal() {
+            const prodForm = document.querySelectorAll(".product-form")
+            let total = 0
+            prodForm.forEach(function (element, index, array) {
+                console.log(element.lastElementChild.children[1])
+                const product_net = parseInt(element.lastElementChild.children[1].value)
+                total += product_net
+            })
+            total_net.value = total
+            updateBrutto()
+        }
+
+        function updateBrutto() {
+            total_brutto.value = total_net.value*1.23.toFixed(2)
         }
     </script>
 </body>

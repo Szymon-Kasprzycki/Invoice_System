@@ -81,13 +81,3 @@ def add_invoice(request):
         invoiceform = InvoiceForm(request.GET or None)
         formset = PositionFormSet(queryset=Product.objects.none())
     return render(request, 'add_invoice.html', {'invoiceform': invoiceform, 'formset': formset})
-
-
-# i = InvoicePosition.objects.create(
-#     product=Product.objects.first(),
-#     invoice=Invoice.objects.first(),
-#     amount=2,
-#     total=2*Product.price
-# )
-#
-# i.product_set.all()
