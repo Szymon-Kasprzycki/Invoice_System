@@ -15,7 +15,7 @@ def success(request):
 
 def add_client(request):
     """
-    Add client from request to the database
+    Add client from request to the database or render client adding form
 
     :param request: The full HTTP request object for the current request (ex: an HTTP GET or POST)
     :return: It is a function that returns a view.
@@ -42,8 +42,7 @@ def add_client(request):
 
 def add_product(request):
     """
-    If the request method is POST, validate the form, and if it's valid, add product to the database.
-    If it's not valid, render the form again with an alert. If the request method is not POST, render the form again.
+    Add product from response to the database or render adding product form
 
     :param request: The full HTTP request object for the current request (exactly as if you had accessed it in a view)
     :return: The form is being returned.
@@ -64,6 +63,12 @@ def add_product(request):
 
 
 def add_invoice(request):
+    """
+       Add invoice from response to the database or render adding invoice form
+
+       :param request: The full HTTP request object for the current request (exactly as if you had accessed it in a view)
+       :return: The form is being returned.
+       """
     if request.method == 'POST':
         invoiceform = InvoiceForm(request.POST)
         formset = PositionFormSet(request.POST)
