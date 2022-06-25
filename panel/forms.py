@@ -7,6 +7,11 @@ class CustomMMCF(forms.ModelMultipleChoiceField):
         return f'{product.name}'
 
 
+class DateInput(forms.DateInput):
+    class Meta:
+        input_type = 'date'
+
+
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
@@ -26,19 +31,40 @@ class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = ['client', 'invoice_number', 'sell_date', 'seller', 'total_net', 'total_brutto', 'payment_method',
-                  'payment_date', 'products']
-        # widgets = {
-        #     'sell_date': DateInput(),
-        #     'payment_date': DateInput(),
-        #     'products': forms.ModelMultipleChoiceField(
-        #         queryset=Product.objects.all(),
-        #         widget=forms.CheckboxSelectMultiple()
-        #     )
-        # }
-        sell_date = forms.DateInput()
-        payment_date = forms.DateInput()
-        products = CustomMMCF(
-            queryset=Product.objects.all(),
-            widget=forms.CheckboxSelectMultiple,
-            to_field_name='products'
-        )
+                  'payment_date']
+        labels = {
+            'client': 'Client',
+            'invoice_number': 'Invoice number',
+            'sell_date': 'Sell date',
+            'seller': 'Seller',
+            'total_net': 'Total net',
+            'total_brutto': 'Total brutto',
+            'payment_method': 'Payment method',
+            'payment_date': 'Payment date'
+        }
+        widgets = {
+            'sell_date': forms.DateInput(
+                format='%Y/%m/%d',
+                attrs={'class': 'form-control',
+                       'placeholder': 'Select a date',
+                       'type': 'date'
+                       }),
+            'payment_date': forms.DateInput(
+                format='%Y/%m/%d',
+                attrs={'class': 'form-control',
+                       'placeholder': 'Select a date',
+                       'type': 'date'
+                       }),
+        }
+
+
+PositionFormSet = forms.modelformset_factory(
+    InvoicePosition,
+    fields=['product', 'amount', 'total_net'],
+    extra=1,
+    widgets={
+        'amount': forms.NumberInput(),
+        'total_net': forms.NumberInput()
+    }
+
+)

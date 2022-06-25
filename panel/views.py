@@ -65,21 +65,29 @@ def add_product(request):
 
 def add_invoice(request):
     if request.method == 'POST':
-        print('1')
-        form = InvoiceForm(request.POST)
-        print(form.products)
-        if form.is_valid():
-            print('2')
-            if Invoice.objects.filter(invoice_number__iexact=request.POST['invoice_number']).exists():
-                return render(request, 'alert.html',
-                              context={'message': 'That invoice already exists in database!'})
-            else:
-                form.save()
-                return redirect('success')
+        invoiceform = InvoiceForm(request.POST)
+        formset = PositionFormSet(request.POST)
+        if invoiceform.is_valid() and formset.is_valid():
+            invoice = invoiceform.save()
+            for form in formset:
+                position = form.save(commit=False)
+                position.invoice = invoice
+                position.save()
+            print(invoice.invoiceposition_set.all())
+            return redirect('success')
         else:
-            return render(request, 'alert.html',
-                          context={'message': 'Form is not valid!'})
+            return render(request, 'alert.html', {'message': 'Form is not valid!'})
     else:
-        print('3')
-        form = InvoiceForm
-        return render(request, 'add_invoice.html', {'form': form})
+        invoiceform = InvoiceForm(request.GET or None)
+        formset = PositionFormSet(queryset=Product.objects.none())
+    return render(request, 'add_invoice.html', {'invoiceform': invoiceform, 'formset': formset})
+
+
+# i = InvoicePosition.objects.create(
+#     product=Product.objects.first(),
+#     invoice=Invoice.objects.first(),
+#     amount=2,
+#     total=2*Product.price
+# )
+#
+# i.product_set.all()

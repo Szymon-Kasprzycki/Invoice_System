@@ -7,10 +7,57 @@
 </head>
 <body>
     <h1>Add invoice to database</h1>
-    <form method="post" enctype="multipart/form-data">
+    <form id="form-container" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Add invoice</button>
+        {{ invoiceform.as_p }}
+        {{ formset.management_form }}
+
+        {% for form in formset %}
+            <div class="product-form" style="border: 2px solid black;">
+            {{ form.as_p }}
+            </div>
+        {% endfor %}
+        <button id="add-form" type="button">Add another product</button>
+        <button id="remove-form" type="button">Remove last product</button>
+        <button type="submit" class="btn btn-block btn-primary">Add invoice</button>
     </form>
     <a href="http://127.0.0.1:8000/">Homepage</a>
+
+    <script>
+        let productForm = document.querySelectorAll(".product-form")
+        let container = document.querySelector("#form-container")
+        let addButton = document.querySelector("#add-form")
+        let removeButton = document.querySelector("#remove-form")
+        let totalForms = document.querySelector("#id_form-TOTAL_FORMS")
+        let formNum = productForm.length-1
+
+        addButton.addEventListener('click', addForm)
+        removeButton.addEventListener('click', removeForm)
+
+        function addForm(e){
+            e.preventDefault()
+
+            let newForm = productForm[0].cloneNode(true)
+            let formRegex = RegExp(`form-(\\d){1}-`,'g')
+
+            formNum++
+            newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${formNum}-`)
+            container.insertBefore(newForm, addButton)
+
+            totalForms.setAttribute('value', `${formNum+1}`)
+        }
+
+        function removeForm(e){
+            e.preventDefault()
+            let productFormu = document.querySelectorAll(".product-form")
+            if (formNum !== 0) {
+                {#console.log(productForm)#}
+                let lastForm = productFormu[formNum]
+                {#console.log(lastForm)#}
+                lastForm.remove()
+                formNum--
+                totalForms.setAttribute('value', `${formNum+1}`)
+            }
+        }
+    </script>
 </body>
