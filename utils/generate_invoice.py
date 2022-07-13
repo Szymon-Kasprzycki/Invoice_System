@@ -20,23 +20,6 @@ data = {
         ("Product name", "34", "145", str(34 * 145), "5%", str(34 * 145 * 0.05), str(34 * 145 * 1.05)),
         ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
         ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
-        ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
     ),
     'info': {
         'invoice_number': '1/07/2022',
@@ -52,9 +35,9 @@ data = {
 
 
 class InvoicePDF(FPDF):
-    def __init__(self, data: dict, orientation='P', unit='mm', format='A4'):
+    def __init__(self, inv_data: dict, orientation='P', unit='mm', format='A4'):
         super().__init__(orientation=orientation, unit=unit, format=format)
-        self.invoice_data = data
+        self.invoice_data = inv_data
         self.add_font('DejaVu', "", 'DejaVuSans.ttf')
         self.add_font("DejaVu", 'B', "DejaVuSans-Bold.ttf")
         self.generate_structure()
@@ -72,6 +55,8 @@ class InvoicePDF(FPDF):
         self.ln(15)
         self.add_seller_buyer(self.invoice_data['seller'], self.invoice_data['buyer'])
         self.add_products()
+        self.add_totals()
+        self.add_sign_places()
 
     def add_default_data(self):
         self.image(
@@ -141,7 +126,7 @@ class InvoicePDF(FPDF):
             else:
                 col_width = self.epw - 10 - 18 - 18 - 21 * 4
             self.multi_cell(col_width, line_height, one_cell, border=1,
-                           new_x="RIGHT", new_y="TOP", max_line_height=self.font_size * 1.5, align='C', fill=True)
+                            new_x="RIGHT", new_y="TOP", max_line_height=self.font_size * 1.5, align='C', fill=True)
         self.ln(line_height)
 
         position_number = 1
@@ -149,7 +134,7 @@ class InvoicePDF(FPDF):
         for row in data['products']:
             col_width = 10
             self.multi_cell(col_width, line_height, str(position_number), border=1,
-                           new_x="RIGHT", new_y="TOP", max_line_height=self.font_size, align='C')
+                            new_x="RIGHT", new_y="TOP", max_line_height=self.font_size, align='C')
             position_number += 1
             for datum in row:
                 # Tutaj match case python 3.10
@@ -162,8 +147,49 @@ class InvoicePDF(FPDF):
                 else:
                     col_width = self.epw - 10 - 18 - 18 - 21 * 4
                 self.multi_cell(col_width, line_height, datum, border=1,
-                               new_x="RIGHT", new_y="TOP", max_line_height=self.font_size, align='C')
+                                new_x="RIGHT", new_y="TOP", max_line_height=self.font_size, align='C')
             self.ln(line_height)
+
+    def add_totals(self):
+        line_height = self.font_size * 3
+        table_scheme = ('', '', '', 'Total', str(self.invoice_data["info"]["total_net"]), '', str(self.invoice_data["info"]["total_b"]-self.invoice_data["info"]["total_net"]), str(self.invoice_data["info"]["total_b"]))
+        for i, one_cell in enumerate(table_scheme):
+            self.set_font("DejaVu", size=10, style='B')
+            if i == 0:
+                col_width = 10
+                border = 0
+            elif i == 2:
+                col_width = 18
+                border = 0
+            elif i == 5:
+                col_width = 18
+                border = 1
+            elif i in [3, 4, 6, 7]:
+                col_width = 21
+                border = 1
+            else:
+                col_width = self.epw - 10 - 18 - 18 - 21 * 4
+                border = 0
+            self.multi_cell(col_width, line_height, one_cell, border=border,
+                            new_x="RIGHT", new_y="TOP", max_line_height=self.font_size * 1.5, align='C')
+        self.ln(line_height)
+
+    def add_sign_places(self):
+        width = (self.epw - self.l_margin*3)/2
+        self.ln(15)
+        self.set_font('DejaVu', style='B', size=13)
+        self.cell(w=width, h=9, txt=self.invoice_data["info"]["selling_person"], align='C')
+        self.ln(4)
+        self.set_font('DejaVu', style='', size=10)
+        self.cell(w=width, h=9, txt='.'*70)
+        self.cell(w=self.l_margin*3, h=9, txt="")
+        self.cell(w=width, h=9, txt='.'*70)
+        self.ln(4)
+        self.set_font('DejaVu', style='', size=9)
+        self.cell(w=width, h=9, txt='Seller', align='C')
+        self.cell(w=self.l_margin*3, h=9, txt="")
+        self.cell(w=width, h=9, txt='Receiver', align='C')
+
 
     def footer(self):
         self.set_y(-15)
@@ -176,5 +202,5 @@ class InvoicePDF(FPDF):
 
 
 if __name__ == '__main__':
-    pdf = InvoicePDF(data=data)
+    pdf = InvoicePDF(inv_data=data)
     pdf.save(pdf.invoice_data['info']['invoice_number'].replace('/', '-') + '.pdf')
