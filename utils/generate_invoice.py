@@ -1,4 +1,5 @@
 from fpdf import *
+from num2words import num2words
 
 data = {
     'buyer': {
@@ -22,14 +23,17 @@ data = {
         ("Product name", "34", "145", str(34 * 145), "23%", str(34 * 145 * 0.23), str(34 * 145 * 1.23)),
     ),
     'info': {
+        'currency': 'USD',
         'invoice_number': '1/07/2022',
         'total_net': 1000.00,
         'total_b': 1230.00,
         'invoice_date': '01.01.2022',
         'invoice_place': 'Warsaw',
         'date_of_service': '01.01.2022',
-        'selling_person': 'Jan Nowak'
-        # TODO add dynamic logo
+        'selling_person': 'Jan Nowak',
+        'payment_type': 'bank transfer in two days',
+        'payment_deadline': '03.01.2022',
+        'bank_account_number': '11 0000 1234 9876 1233 9876'
     }
 }
 
@@ -56,6 +60,7 @@ class InvoicePDF(FPDF):
         self.add_seller_buyer(self.invoice_data['seller'], self.invoice_data['buyer'])
         self.add_products()
         self.add_totals()
+        self.add_summary()
         self.add_sign_places()
 
     def add_default_data(self):
@@ -152,7 +157,9 @@ class InvoicePDF(FPDF):
 
     def add_totals(self):
         line_height = self.font_size * 3
-        table_scheme = ('', '', '', 'Total', str(self.invoice_data["info"]["total_net"]), '', str(self.invoice_data["info"]["total_b"]-self.invoice_data["info"]["total_net"]), str(self.invoice_data["info"]["total_b"]))
+        table_scheme = ('', '', '', 'Total', str(self.invoice_data["info"]["total_net"]), '',
+                        str(self.invoice_data["info"]["total_b"] - self.invoice_data["info"]["total_net"]),
+                        str(self.invoice_data["info"]["total_b"]))
         for i, one_cell in enumerate(table_scheme):
             self.set_font("DejaVu", size=10, style='B')
             if i == 0:
@@ -174,31 +181,63 @@ class InvoicePDF(FPDF):
                             new_x="RIGHT", new_y="TOP", max_line_height=self.font_size * 1.5, align='C')
         self.ln(line_height)
 
+    def add_summary(self):
+        width = (self.epw - self.l_margin * 3) / 2
+        self.set_font('DejaVu', style='B', size=13)
+        self.cell(w=width, h=10, txt='', border='B')
+        self.cell(w=self.l_margin * 3, h=10, txt="")
+        self.cell(w=width, h=10, txt='', border='B')
+        text_width = width / 3
+        self.ln()
+        self.set_font('DejaVu', style='B', size=9)
+        self.cell(w=text_width, h=11, txt='Payment type')
+        self.set_font('DejaVu', style='', size=9)
+        self.cell(w=text_width * 2, h=11, txt=self.invoice_data['info']['payment_type'], align='C')
+        self.cell(w=self.l_margin * 3, h=11, txt='')
+        self.set_font('DejaVu', style='B', size=12)
+        self.cell(w=width, h=12,
+                  txt=f'To pay: {self.invoice_data["info"]["total_b"]} {self.invoice_data["info"]["currency"]}',
+                  align='C')
+        self.ln()
+        self.set_font('DejaVu', style='B', size=9)
+        self.cell(w=text_width, h=11, txt='Payment deadline', border='T')
+        self.set_font('DejaVu', style='', size=9)
+        self.cell(w=text_width * 2, h=11, txt=self.invoice_data['info']['payment_deadline'], align='C', border='T')
+        self.cell(w=self.l_margin * 3, h=10, txt="")
+        self.set_font('DejaVu', style='', size=7)
+        self.cell(w=width, h=10, border="T",
+                  txt=f'In words: {num2words(self.invoice_data["info"]["total_b"], ordinal=False, to="currency").replace("euro", "dollars")}')
+        self.ln()
+        self.set_font('DejaVu', style='B', size=7)
+        self.cell(w=text_width, h=11, txt='Bank account number:', border='T')
+        self.set_font('DejaVu', style='', size=7)
+        self.cell(w=text_width * 2, h=11, txt=f'{self.invoice_data["info"]["bank_account_number"]}', align='C',
+                  border='T')
+
     def add_sign_places(self):
-        width = (self.epw - self.l_margin*3)/2
-        self.ln(15)
+        width = (self.epw - self.l_margin * 3) / 2
+        self.ln(25)
         self.set_font('DejaVu', style='B', size=13)
         self.cell(w=width, h=9, txt=self.invoice_data["info"]["selling_person"], align='C')
         self.ln(4)
         self.set_font('DejaVu', style='', size=10)
-        self.cell(w=width, h=9, txt='.'*70)
-        self.cell(w=self.l_margin*3, h=9, txt="")
-        self.cell(w=width, h=9, txt='.'*70)
+        self.cell(w=width, h=9, txt='.' * 70)
+        self.cell(w=self.l_margin * 3, h=9, txt="")
+        self.cell(w=width, h=9, txt='.' * 70)
         self.ln(4)
         self.set_font('DejaVu', style='', size=9)
         self.cell(w=width, h=9, txt='Seller', align='C')
-        self.cell(w=self.l_margin*3, h=9, txt="")
+        self.cell(w=self.l_margin * 3, h=9, txt="")
         self.cell(w=width, h=9, txt='Receiver', align='C')
-
 
     def footer(self):
         self.set_y(-15)
         self.set_font('DejaVu', '', 8)
         self.cell(w=0, h=10, txt='{}/{}'.format(self.page_no(), '{nb}'), border=0, align='C')
 
-    def save(self, name: str):
+    def save(self):
         self.alias_nb_pages()
-        self.output(name=name)
+        return self.output(dest='S')
 
 
 if __name__ == '__main__':
