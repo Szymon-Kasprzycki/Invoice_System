@@ -1,8 +1,12 @@
+import io
+
 from django.shortcuts import render, redirect
+from django.http import FileResponse
 from django.http import HttpResponse
 from .models import *
 from .forms import *
-
+from utils.generate_invoice import InvoicePDF
+import json
 
 # Create your views here.
 def index(request):
@@ -78,7 +82,7 @@ def add_invoice(request):
                 position = form.save(commit=False)
                 position.invoice = invoice
                 position.save()
-            print(invoice.invoiceposition_set.all())
+            # print(invoice.invoiceposition_set.all())
             return redirect('success')
         else:
             return render(request, 'alert.html', {'message': 'Form is not valid!'})
@@ -86,3 +90,15 @@ def add_invoice(request):
         invoiceform = InvoiceForm(request.GET or None)
         formset = PositionFormSet(queryset=Product.objects.none())
     return render(request, 'add_invoice.html', {'invoiceform': invoiceform, 'formset': formset})
+
+
+def get_invoice_print(request):
+    if request.method == 'POST':
+        body_unicode = request.body.decode('utf-8')
+        data = json.loads(body_unicode)
+        if all(x in data.keys() for x in ('buyer', 'seller', 'products', 'info')):
+            pdf = InvoicePDF(data)
+            x = io.BytesIO(pdf.save())
+            return FileResponse(x, filename='xx.pdf')
+        else:
+            return HttpResponse('<h1>Error</h1>')
